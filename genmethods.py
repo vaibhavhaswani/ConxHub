@@ -28,7 +28,7 @@ def genscript(api_key,channel_name,proj_prompt,proj_name,script_path):
     response = model.generate_content(
         f"Create a detailed YouTube script for the channel {channel_name}. The video should present and explain the concept of '{proj_prompt}' in a clear, engaging, and experimental way (predict additional knowledge and features on your own). Include intuitive and innovative ideas to illustrate the concept effectively, making it relatable and intriguing for viewers. Add a captivating introduction, experimental demonstrations, technical specifications based on product (like for example power and torque for vehicles), real-life applications, and a compelling conclusion that ties everything together. It should strictly be in a format 'Title:<Engaging and Catchy video title like upcoming {proj_name} to increase user clicks>\nScript:<Engaging Script>' avoid use of suggestions, third person references, Including Steps, or having visual and audio suggestions like 'intro music or video playing etc' just use direct script suitable to fed into a TTS model"
     )
-    logger.debug(response.text)
+    # logger.debug(response.text)
     video_title,script=response.text.split('Script:')
     try:
         video_title=video_title.split('Title: ')[1]
