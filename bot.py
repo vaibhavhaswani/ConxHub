@@ -43,6 +43,19 @@ SCRIPTS = {
     }
 }
 
+# Add COMMANDS dictionary
+COMMANDS = {
+    'start': '🚀 Start the bot and show available scripts',
+    'help': '❓ Show all available commands and usage information',
+}
+
+def format_scripts_list() -> str:
+    """Format available scripts into a readable list"""
+    scripts_text = "📜 *Available Scripts:*\n\n"
+    for key, script in SCRIPTS.items():
+        scripts_text += f"• {script['description']} (`{key}`)\n"
+    return scripts_text
+
 @asynccontextmanager
 async def create_bot():
     """Context manager for bot lifecycle"""
@@ -64,11 +77,11 @@ async def execute_script(update: Update, context: ContextTypes.DEFAULT_TYPE):
     script_key = query.data.replace('run_', '')
     
     if script_key not in SCRIPTS:
-        await query.message.edit_text("❌ Invalid script selected")
+        await query.message.edit_text("❌ Invalid script selected. Please try again.")
         return
         
     script = SCRIPTS[script_key]
-    message = await query.message.edit_text(f"⚙️ Executing {script['description']}...")
+    message = await query.message.edit_text(f"⚙️ *Executing {script['description']}...*\n\nPlease wait while we process your request.")
     
     try:
         process = await asyncio.create_subprocess_exec(
@@ -79,16 +92,16 @@ async def execute_script(update: Update, context: ContextTypes.DEFAULT_TYPE):
         stdout, stderr = await process.communicate()
         
         if process.returncode == 0:
-            await message.edit_text("✅ ConxHub Processing completed successfully!")
+            await message.edit_text(f"✅ *{script['description']}* completed successfully! 🎉\n\nThank you for your patience.")
             if stdout:
                 logger.info(f"Script output: {stdout.decode().strip()}")
         else:
             error_msg = stderr.decode().strip() if stderr else "No error output available"
             logger.error(f"Script failed with error: {error_msg}")
-            await message.edit_text(f"❌ Processing failed:\n{error_msg}")
+            await message.edit_text(f"❌ *{script['description']}* failed with the following error:\n\n{error_msg}")
     except Exception as e:
         logger.error(f"Error executing script: {e}")
-        await message.edit_text(f"❌ Error: {str(e)}")
+        await message.edit_text(f"❌ An unexpected error occurred:\n\n{str(e)}")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command"""
@@ -96,19 +109,44 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = []
         for key, script in SCRIPTS.items():
             button = InlineKeyboardButton(
-                f"Run {script['description']}", 
+                f"🔄 Run {script['description']}", 
                 callback_data=f"run_{key}"
             )
             keyboard.append([button])
             
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
-            "Welcome to Script Runner Bot!\nAvailable scripts:",
-            reply_markup=reply_markup
+            "🎉 *Welcome to Script Runner Bot!*\n\n"
+            "I'm here to help you run various processing scripts.\n\n"
+            f"{format_scripts_list()}\n"
+            "Use /help to see all available commands.\n\n"
+            "Select a script to run:",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
     except Exception as e:
         logger.error(f"Error handling start command: {e}")
         await update.message.reply_text("❌ An error occurred. Please try again.")
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /help command"""
+    help_text = (
+        "🤖 *ConxHub Bot Help*\n\n"
+        "📋 *Available Commands:*\n"
+    )
+    
+    for cmd, desc in COMMANDS.items():
+        help_text += f"/{cmd} - {desc}\n"
+    
+    help_text += f"\n{format_scripts_list()}\n"
+    help_text += (
+        "\n💡 *How to use:*\n"
+        "1. Use /start to see available scripts\n"
+        "2. Click on any script button to run it\n"
+        "3. Wait for the processing to complete\n"
+    )
+    
+    await update.message.reply_text(help_text, parse_mode='Markdown')
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle button callbacks"""
@@ -124,13 +162,20 @@ async def setup_bot(app: Application):
     """Setup bot handlers and send startup notification"""
     # Add handlers
     app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CallbackQueryHandler(button_handler))
     
     # Send startup notification
     try:
         await app.bot.send_message(
             chat_id=CHAT_ID,
-            text="🚀 ConxHub Bot is now online!"
+            text=(
+                "🚀 *ConxHub Bot is now online!*\n\n"
+                "I'm here to assist you with running various scripts.\n"
+                "Use /start to see available scripts or /help for more information.\n\n"
+                "Let's get started! 🎉"
+            ),
+            parse_mode='Markdown'
         )
     except Exception as e:
         logger.error(f"Failed to send startup notification: {e}")
