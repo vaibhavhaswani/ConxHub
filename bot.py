@@ -84,6 +84,9 @@ async def execute_script(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = await query.message.edit_text(f"⚙️ *Executing {script['description']}...*\n\nPlease wait while we process your request.")
     
     try:
+        # Notify that the script is running
+        await context.bot.send_message(chat_id=CHAT_ID, text=f"🚀 *{script['description']}* is running...")
+
         process = await asyncio.create_subprocess_exec(
             'python', script['file'],
             stdout=asyncio.subprocess.PIPE,
@@ -95,13 +98,19 @@ async def execute_script(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await message.edit_text(f"✅ *{script['description']}* completed successfully! 🎉\n\nThank you for your patience.")
             if stdout:
                 logger.info(f"Script output: {stdout.decode().strip()}")
+            # Notify that the script run is completed
+            await context.bot.send_message(chat_id=CHAT_ID, text=f"✅ *{script['description']}* run completed successfully!")
         else:
             error_msg = stderr.decode().strip() if stderr else "No error output available"
             logger.error(f"Script failed with error: {error_msg}")
             await message.edit_text(f"❌ *{script['description']}* failed with the following error:\n\n{error_msg}")
+            # Notify that the script run failed
+            await context.bot.send_message(chat_id=CHAT_ID, text=f"❌ *{script['description']}* run failed with error:\n\n{error_msg}")
     except Exception as e:
         logger.error(f"Error executing script: {e}")
         await message.edit_text(f"❌ An unexpected error occurred:\n\n{str(e)}")
+        # Notify that an unexpected error occurred
+        await context.bot.send_message(chat_id=CHAT_ID, text=f"❌ An unexpected error occurred while running *{script['description']}*:\n\n{str(e)}")
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command"""

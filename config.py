@@ -2,5 +2,7 @@ default_dir="projects/"
 
 channel_name="ConxHub"
 
-proj_prompt="Royal Enfield Classic with 1000cc engine and 90bhp power"
-proj_name="Royal Enfield Classic 1000cc"
+images_per_video=15
+
+proj_prompt="Royal Enfield Himalayan 750 massive adventure motorcycle"
+proj_name="Royal Enfield Himalayan 750"

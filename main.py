@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from config import channel_name,default_dir,proj_prompt, proj_name
+from config import channel_name,default_dir,proj_prompt, proj_name,images_per_video
 from genmethods import genscript,genimages,genprompts
 from logger import get_logger
 from media_methods import create_audio_with_background,create_video_with_transitions,add_intro_and_closure
@@ -9,7 +9,7 @@ load_dotenv()
 
 logger=get_logger()
 
-images_per_video=2
+# images_per_video=15 #override
 
 meta_path="meta/"
 
